@@ -9,12 +9,14 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 import docx  # Library to handle .docx files
+from pptx import Presentation  # Library to handle .pptx files
+import csv  # Built-in library to handle .csv files
 
 # Hardcode your Google API key here (replace with your actual key)
-GOOGLE_API_KEY = ""
+GOOGLE_API_KEY = "AIzaSyBSexVrceATa6AnjuTgVPefOzUxyi2cvEM"
 
 def get_document_text(docs):
-    """Extract text from PDF, DOCX, and TXT files"""
+    """Extract text from PDF, DOCX, TXT, PPTX, and CSV files"""
     text = ""
     for doc in docs:
         try:
@@ -31,6 +33,17 @@ def get_document_text(docs):
                         text += para.text + "\n"
             elif doc.name.endswith('.txt'):
                 text += doc.read().decode('utf-8')  # Read text file content
+            elif doc.name.endswith('.pptx'):
+                prs = Presentation(doc)
+                for slide in prs.slides:
+                    for shape in slide.shapes:
+                        if hasattr(shape, "text") and shape.text:
+                            text += shape.text + "\n"
+            elif doc.name.endswith('.csv'):
+                csv_content = doc.read().decode('utf-8')
+                csv_reader = csv.reader(csv_content.splitlines(), delimiter=',')
+                for row in csv_reader:
+                    text += " ".join(row) + "\n"
         except Exception as e:
             st.error(f"Error processing file {doc.name}: {str(e)}")
     return text
@@ -135,9 +148,6 @@ def main():
         st.error("Please set a valid GOOGLE_API_KEY in the code.")
         st.info("Replace 'your-actual-api-key-here' with your actual Google API key at the top of the script.")
         return
-    
-
-    
 
     try:
         genai.configure(api_key=api_key)
@@ -148,7 +158,7 @@ def main():
         st.info("Please verify your API key in Google Cloud Console and ensure Generative Language API is enabled.")
         return
 
-    st.header("Chat with PDF,Documents & Text files using Gemini💁")
+    st.header("Chat with PDF, Documents, Text, PPTX & CSV files using Gemini💁")
 
     if 'processed' not in st.session_state:
         st.session_state.processed = False
@@ -162,9 +172,9 @@ def main():
     with st.sidebar:
         st.title("Menu")
         uploaded_docs = st.file_uploader(
-            "Upload your Files (PDF, DOCX, TXT)",
+            "Upload your Files (PDF, DOCX, TXT, PPTX, CSV)",
             accept_multiple_files=True,
-            type=['pdf', 'docx', 'txt'],
+            type=['pdf', 'docx', 'txt', 'pptx', 'csv'],
             key="doc_uploader"
         )
         
