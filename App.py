@@ -11,12 +11,13 @@ from langchain.prompts import PromptTemplate
 import docx  # Library to handle .docx files
 from pptx import Presentation  # Library to handle .pptx files
 import csv  # Built-in library to handle .csv files
+import pandas as pd  # Library to handle Excel files
 
 # Hardcode your Google API key here (replace with your actual key)
 GOOGLE_API_KEY = "AIzaSyBSexVrceATa6AnjuTgVPefOzUxyi2cvEM"
 
 def get_document_text(docs):
-    """Extract text from PDF, DOCX, TXT, PPTX, and CSV files"""
+    """Extract text from PDF, DOCX, TXT, PPTX, CSV, and Excel files"""
     text = ""
     for doc in docs:
         try:
@@ -44,6 +45,10 @@ def get_document_text(docs):
                 csv_reader = csv.reader(csv_content.splitlines(), delimiter=',')
                 for row in csv_reader:
                     text += " ".join(row) + "\n"
+            elif doc.name.endswith(('.xlsx', '.xls')):  # Handle Excel files
+                df = pd.read_excel(doc)
+                # Convert the DataFrame to string, preserving structure
+                text += df.to_string(index=False) + "\n"
         except Exception as e:
             st.error(f"Error processing file {doc.name}: {str(e)}")
     return text
@@ -158,7 +163,7 @@ def main():
         st.info("Please verify your API key in Google Cloud Console and ensure Generative Language API is enabled.")
         return
 
-    st.header("Chat with PDF, Documents, Text, PPTX & CSV files using Gemini💁")
+    st.header("Chat with PDF, Documents, Text, PPTX, CSV & Excel files using Gemini💁")
 
     if 'processed' not in st.session_state:
         st.session_state.processed = False
@@ -172,9 +177,9 @@ def main():
     with st.sidebar:
         st.title("Menu")
         uploaded_docs = st.file_uploader(
-            "Upload your Files (PDF, DOCX, TXT, PPTX, CSV)",
+            "Upload your Files (PDF, DOCX, TXT, PPTX, CSV, XLSX, XLS)",
             accept_multiple_files=True,
-            type=['pdf', 'docx', 'txt', 'pptx', 'csv'],
+            type=['pdf', 'docx', 'txt', 'pptx', 'csv', 'xlsx', 'xls'],  # Added Excel types
             key="doc_uploader"
         )
         
