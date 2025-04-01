@@ -11,7 +11,7 @@ from langchain.prompts import PromptTemplate
 import docx  # Library to handle .docx files
 
 # Hardcode your Google API key here (replace with your actual key)
-GOOGLE_API_KEY = "AIzaSyBSexVrceATa6AnjuTgVPefOzUxyi2cvEM"
+GOOGLE_API_KEY = ""
 
 def get_document_text(docs):
     """Extract text from PDF, DOCX, and TXT files"""
